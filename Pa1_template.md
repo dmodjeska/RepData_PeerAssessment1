@@ -10,14 +10,12 @@ output:
 
 <br>
 
-```{r setoptions, echo = FALSE}
-library(knitr)
-opts_chunk$set(fig.width = 7, fig.height = 6)
-```
+
 
 ### Loading and preprocessing the data
 
-```{r}
+
+```r
 library(dplyr)
 library(lubridate)
 library(stringr)
@@ -36,7 +34,8 @@ bad_steps_data <- steps_data %>%
 
 Let's calculate the total, mean, and median number of steps taken per day.
 
-```{r, message = FALSE}
+
+```r
 # Calculate the total and central values
 daily_steps <- good_steps_data %>%
     group_by(yday(datetime)) %>%
@@ -46,7 +45,8 @@ median_total_daily_steps <- median(daily_steps$Total_Daily_Steps)
 ```
 Now, let's see a histogram showing the total and mean steps per day.
 
-```{r}
+
+```r
 # Plot the distribution
 library(ggplot2)
 options(scipen = 1, digits = 2)
@@ -55,17 +55,19 @@ ggplot(daily_steps, aes(Total_Daily_Steps)) +
         geom_vline(xintercept = mean_total_daily_steps, color = "red", 
                    linetype = "dotted", size = 1) +
         xlab("Total Steps per Day") + ylab("Frequency") + theme_bw()
-
 ```
 
-For the total number of steps taken per day, the mean is `r mean_total_daily_steps` 
-and the median is `r median_total_daily_steps`.
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
+
+For the total number of steps taken per day, the mean is 10766.19 
+and the median is 10765.
 
 <br>
 
 ### What is the average daily activity pattern?
 
-```{r}
+
+```r
 # Analyze the pattern
 interval_steps <- good_steps_data %>%
     group_by(interval) %>%
@@ -90,23 +92,27 @@ ggplot(interval_steps, aes(plot_interval, Mean_Interval_Steps)) +
     xlab("Time Interval") + ylab("Mean Number of Steps") + theme_bw()
 ```
 
-The `r text_interval` interval, on average across all the days in the 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
+
+The 08:35 interval, on average across all the days in the 
 dataset, contains the maximum number of steps. Other peak intervals around 12:00, 16:00, and 19:00 may reflect activities such as meals and breaks/snacks. Further research would be needed to identify these activities.
 
 <br>
 
 ### Imputing missing values
 
-```{r}
+
+```r
 # Calculate the number of NA's
 numNa <- sum(is.na(steps_data$steps))
 ```
 
-The total number of missing values in the dataset is `r numNa`.
+The total number of missing values in the dataset is 2304.
 
 Let's fill in all of the missing values in the dataset. A simple strategy should work: for each missing value, using the mean of all good values for that 5-minute interval. These means were calculated previously.
 
-```{r}
+
+```r
 # Impute the missing values
 clean_steps_data <- bad_steps_data %>%
     inner_join(interval_steps, by = "interval") %>%
@@ -118,7 +124,8 @@ clean_steps_data <- bad_steps_data %>%
 
 Let's re-calculate the total, mean, and median number of steps taken per day.
 
-```{r}
+
+```r
 # Recalcuate the total and central values
 clean_daily_steps <- clean_steps_data %>%
     group_by(yday(datetime)) %>%
@@ -129,7 +136,8 @@ median_total_daily_steps_2 <- median(clean_daily_steps$Total_Daily_Steps)
 
 Now, let's see a new histogram showing the total and mean steps per day.
 
-```{r}
+
+```r
 # Re-plot the distribution
 library(ggplot2)
 options(scipen = 1, digits = 2)
@@ -140,8 +148,10 @@ ggplot(clean_daily_steps, aes(Total_Daily_Steps)) +
         xlab("Total Steps per Day") + ylab("Frequency") + theme_bw()
 ```
 
-For the total number of steps taken per day, the mean is now `r mean_total_daily_steps_2` 
-and the median is now `r median_total_daily_steps_2`. The mean and the median differ only slightly from the estimates from the first part of the assignment. The difference is on account of rounding the imputed step values to the nearest interger. The impact of imputing missing data on the estimates on the total daily number of steps - it's predictably to increase this estimate, because there are more observations contributing to the daily total. 
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8-1.png) 
+
+For the total number of steps taken per day, the mean is now 10765.64 
+and the median is now 10762. The mean and the median differ only slightly from the estimates from the first part of the assignment. The difference is on account of rounding the imputed step values to the nearest interger. The impact of imputing missing data on the estimates on the total daily number of steps - it's predictably to increase this estimate, because there are more observations contributing to the daily total. 
 
 <br>
 
@@ -150,7 +160,8 @@ and the median is now `r median_total_daily_steps_2`. The mean and the median di
 Let's create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day. 
 We're using the dataset with the filled-in missing values for this part.
 
-```{r, fig.width = 8, fig.height = 7}
+
+```r
 # Analyze the patterns
 weekday_steps_data <- clean_steps_data %>%
     mutate(weekday = wday(datetime)) %>%
@@ -164,7 +175,8 @@ weekday_interval_steps <- weekday_steps_data %>%
 
 Let's make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 
-```{r}
+
+```r
 # Plot the patterns
 ggplot(weekday_interval_steps, aes(plot_interval, Mean_Interval_Steps)) +
     scale_x_datetime(labels = date_format("%H:%M")) +
@@ -172,5 +184,7 @@ ggplot(weekday_interval_steps, aes(plot_interval, Mean_Interval_Steps)) +
     facet_wrap(~ is_weekday, ncol = 1) +
     xlab("Time Interval") + ylab("Mean Number of Steps") + theme_bw()
 ```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png) 
 
 It looks like the subject takes more steps on weekend days, on average. The peak  intervals are all higher on weekends, though the intervals leading up to the maximum interval of 08:35 are higher on weekdays. This higher lead-up on weekday mornings may reflect an activity such as commuting or preparing children for school - further research would be needed to determine the particular cause.
